@@ -66,6 +66,10 @@ public class Post implements Serializable {
     public void addLike(Like like) {
     	likes.add(like);
     }
+    
+    public void removeLike(Like like) {
+    	likes.remove(like);
+    }
 
     public List<String> getHashtags() {
         return hashtags;

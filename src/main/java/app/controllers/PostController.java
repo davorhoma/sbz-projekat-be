@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,9 +46,10 @@ public class PostController {
 	
 	@PreAuthorize("hasRole('USER')")
 	@GetMapping("/")
-	public ResponseEntity<List<PostDTO>> getAllPosts() {
+	public ResponseEntity<List<PostDTO>> getAllPosts(@RequestHeader("Authorization") String authHeader) {
 		try {
-	        List<PostDTO> fetchedPosts = postService.getAll();
+			UUID userId = jwtUtil.extractUserId(authHeader.replace("Bearer ", ""));
+	        List<PostDTO> fetchedPosts = postService.getAll(userId);
 	        return ResponseEntity.ok(fetchedPosts);
 	    } catch (Exception e) {
 	        return ResponseEntity.badRequest().build();
@@ -68,11 +70,13 @@ public class PostController {
 	
 	@PreAuthorize("hasRole('USER')")
 	@PutMapping("/like")
-	public ResponseEntity<PostDTO> likePost(@RequestBody String postId, @RequestHeader("Authorization") String authHeader) {
+	public ResponseEntity<PostDTO> updateLikeStatus(@RequestBody String postId, @RequestHeader("Authorization") String authHeader) {
 		try {
 			String token = authHeader.replace("Bearer ", "");
-			PostDTO post = postService.likePost(postId, token);
+			PostDTO post = postService.updateLikeStatus(postId, token);
 			return ResponseEntity.ok(post);
+		} catch (IllegalStateException e) {
+			return ResponseEntity.status(HttpStatus.CONFLICT).build();
 		} catch (Exception e) {
 			return ResponseEntity.badRequest().build();
 		}

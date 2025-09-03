@@ -14,10 +14,11 @@ public class PostDTO {
 	public int numberOfReports;
 	public String userFirstName;
     public String userLastName;
+    public boolean likedByCurrentUser;
 	
 	public PostDTO() {}
 	
-	public PostDTO(Post post) {
+	public PostDTO(Post post, UUID currentUserId) {
         this.id = post.getId();
         this.text = post.getText();
         this.numberOfLikes = post.getLikes().size();
@@ -25,9 +26,11 @@ public class PostDTO {
         this.numberOfReports = post.getReports().size();
         this.userFirstName = post.getUser().getFirstName();
         this.userLastName = post.getUser().getLastName();
+        this.likedByCurrentUser = post.getLikes().stream()
+                .anyMatch(like -> like.getUser().getId().equals(currentUserId));
     }
 	
-	public PostDTO(UUID id, String text, List<String> hashtags, int numberOfLikes, int numberOfReports, String userFirstName, String userLastName) {
+	public PostDTO(UUID id, String text, List<String> hashtags, int numberOfLikes, int numberOfReports, String userFirstName, String userLastName, boolean likedByCurrentUser) {
 		super();
 		this.id = id;
 		this.text = text;
@@ -36,5 +39,6 @@ public class PostDTO {
 		this.numberOfReports = numberOfReports;
 		this.userFirstName = userFirstName;
         this.userLastName = userLastName;
+        this.likedByCurrentUser = likedByCurrentUser;
 	}
 }

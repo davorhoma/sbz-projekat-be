@@ -36,17 +36,17 @@ public class PostService {
 			newPost.setUser(user);
 			
 			Post saved = postRepository.save(newPost);
-	        return new PostDTO(saved);			
+	        return new PostDTO(saved, user.getId());			
 		} catch (Exception e) {
 			throw new Exception("Error creating new post");
 		}
 	}
 
-	public List<PostDTO> getAll() throws Exception {
+	public List<PostDTO> getAll(UUID userId) throws Exception {
 		try {
 			return postRepository.findAll().stream()
-                    .map(PostMapper::toDto)
-                    .collect(Collectors.toList());
+					.map(post -> new PostDTO(post, userId))
+	                .collect(Collectors.toList());
 		} catch (Exception e) {
 			throw new Exception("Error fetching posts");
 		}
@@ -55,7 +55,7 @@ public class PostService {
 	public List<PostDTO> getPostsForUser(UUID userId) {
         return postRepository.findAllByUserId(userId)
                 .stream()
-                .map(PostDTO::new)
+                .map(post -> new PostDTO(post, userId))
                 .collect(Collectors.toList());
     }
 	
@@ -67,25 +67,28 @@ public class PostService {
 		return postRepository.save(post);
 	}
 
-	public PostDTO likePost(String postIdStr, String token) throws Exception {
+	public PostDTO updateLikeStatus(String postIdStr, String token) throws Exception {
 		UUID userId = jwtUtil.extractUserId(token);
 		User user = userService.findById(userId);
 		
 		UUID postId = UUID.fromString(postIdStr);
 		Post post = get(postId);
 
-		boolean alreadyLiked = post.getLikes().stream()
-                .anyMatch(like -> like.getUserId().equals(user.getId()));
+		Like existingLike = post.getLikes().stream()
+	            .filter(like -> like.getUser().getId().equals(user.getId()))
+	            .findFirst()
+	            .orElse(null);
 
-		if (alreadyLiked) {
-            throw new IllegalStateException("User has already liked this post.");
-        }
+	    if (existingLike != null) {
+	        post.getLikes().remove(existingLike);
+	    } else {
+	        Like newLike = new Like(user, post);
+	        post.addLike(newLike);
+	    }
 		
-		Like newLike = new Like(userId, postId);
-		post.addLike(newLike);
 		Post saved = save(post);
 		
-		return PostMapper.toDto(saved);
+		return PostMapper.toDto(saved, userId);
 	}
 
 }

@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -22,20 +23,22 @@ public class Like {
     @GeneratedValue
     private UUID id;
 
-    @Column(nullable = false, updatable = false)
-    private UUID userId;
-    
-    @Column(nullable = false, updatable = false)
-    private UUID postId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id", nullable = false)
+    private Post post;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     public Like() {}
 
-    public Like(UUID userId, UUID postId) {
-        this.userId = userId;
-        this.postId = postId;
+    public Like(User user, Post post) {
+        this.user = user;
+        this.post = post;
         this.createdAt = LocalDateTime.now();
     }
 
@@ -43,20 +46,20 @@ public class Like {
         return id;
     }
 
-    public UUID getUserId() {
-        return userId;
+    public User getUser() {
+        return user;
     }
 
-    public void setUserId(UUID userId) {
-        this.userId = userId;
+    public void setUser(User user) {
+        this.user = user;
     }
 
-    public UUID getPostId() {
-        return postId;
+    public Post getPost() {
+        return post;
     }
 
-    public void setPostId(UUID postId) {
-        this.postId = postId;
+    public void setPost(Post post) {
+        this.post = post;
     }
 
     public LocalDateTime getCreatedAt() {

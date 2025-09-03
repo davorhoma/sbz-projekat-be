@@ -49,6 +49,6 @@ public class ReportService {
         post.addReport(newReport);
         Post saved = postService.save(post);
         
-        return PostMapper.toDto(saved);			
+        return PostMapper.toDto(saved, userId);			
 	}
 }
