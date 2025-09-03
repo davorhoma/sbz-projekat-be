@@ -20,6 +20,8 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserRegisterDTO request) {
         try {
+        	System.out.println(request.placeId);
+        	
             User user = authService.register(
                     request.firstName,
                     request.lastName,

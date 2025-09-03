@@ -1,5 +1,6 @@
 package app.services;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,5 +32,9 @@ public class PlaceService {
 		} catch (Exception e) {
 			throw new Exception("Error creating new place");
 		}
+	}
+
+	public List<Place> getAll() {
+		return placeRepository.findAll();
 	}
 }
