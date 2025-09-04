@@ -2,6 +2,7 @@ package app.model;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -27,6 +28,13 @@ public class User implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "place_id")
     private Place place;
+    
+    @OneToMany(mappedBy = "sender")
+    private List<FriendRequest> sentRequests;
+
+    @OneToMany(mappedBy = "recipient")
+    private List<FriendRequest> receivedRequests;
+
 
     public User() {}
 
