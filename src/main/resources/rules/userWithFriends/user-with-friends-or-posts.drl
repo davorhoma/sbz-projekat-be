@@ -2,6 +2,7 @@ package rules.userWithFriends;
 
 import app.model.Like;
 import app.model.User;
+import app.model.Post;
 import app.dtos.FeedPost;
 import app.services.DroolsService;
 
@@ -27,3 +28,23 @@ then
         + " because user " + $likeOther.getUser().getId() + " liked it");
 	$fp.setVisible(true);
 end
+
+rule "Recommend similar posts by likes overlap"
+when
+    $postA : Post()
+    $postB : Post( this != $postA )
+
+    Like( user.getId() == loggedUser.getId(), post.getId() == $postA.getId() )
+
+    not Like( user.getId() == loggedUser.getId(), post.getId() == $postB.getId() )
+
+    eval( DroolsService.postsAreSimilar($postA, $postB, allLikes, 0.7) )
+    
+    $fp : FeedPost( post.getId() == $postB.getId() && post.userId != loggedUser.getId() )
+then
+    System.out.println("Recommend post by likes overlap: " + $postB.getId() 
+        + " to user " + loggedUser.getId() 
+        + " because it is similar to post " + $postA.getId());
+    $fp.setVisible(true);
+end
+

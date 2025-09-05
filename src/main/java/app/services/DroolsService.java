@@ -2,7 +2,10 @@ package app.services;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.kie.api.KieServices;
@@ -110,4 +113,26 @@ public class DroolsService {
         System.out.println("Numerator/Denominator" + numerator/denominator);
         return numerator / denominator;
     }
+    
+    public static boolean postsAreSimilar(Post postA, Post postB, List<Like> allLikes, double threshold) {
+        Set<UUID> usersA = allLikes.stream()
+                .filter(l -> l.getPost().equals(postA))
+                .map(l -> l.getUser().getId())
+                .collect(Collectors.toSet());
+
+        Set<UUID> usersB = allLikes.stream()
+                .filter(l -> l.getPost().equals(postB))
+                .map(l -> l.getUser().getId())
+                .collect(Collectors.toSet());
+
+        if (usersA.isEmpty() || usersB.isEmpty()) return false;
+
+        Set<UUID> intersection = new HashSet<>(usersA);
+        intersection.retainAll(usersB);
+
+        double overlap = (double) intersection.size() / (double) usersA.size();
+
+        return overlap >= threshold;
+    }
+
 }
