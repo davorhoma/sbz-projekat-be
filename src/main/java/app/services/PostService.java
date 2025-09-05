@@ -1,7 +1,6 @@
 package app.services;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -16,6 +15,7 @@ import app.mappers.UserMapper;
 import app.model.Like;
 import app.model.Post;
 import app.model.User;
+import app.repositories.LikeRepository;
 import app.repositories.PostRepository;
 import app.utils.JwtUtil;
 
@@ -24,6 +24,9 @@ public class PostService {
 
 	@Autowired
 	private PostRepository postRepository;
+	
+	@Autowired
+	private LikeRepository likeRepository;
 	
 	@Autowired
 	private JwtUtil jwtUtil;
@@ -121,9 +124,13 @@ public class PostService {
 		        .collect(Collectors.toList());
 		
 		if (friends.isEmpty()) {
+			System.out.println("No friends");
 			droolsService.applyRulesForNewUser(feedPosts);			
 		} else {
-			droolsService.applyRulesForUserWithFriends(feedPosts);
+			System.out.println("Has friends");
+			List<User> allUsers = userService.getAll();
+			List<Like> allLikes = likeRepository.findAll();
+			droolsService.applyRulesForUserWithFriends(feedPosts, user, allUsers, allPosts, allLikes);
 		}
 		
 		return feedPosts.stream()

@@ -15,6 +15,7 @@ public class PostMapper {
 				post.getHashtags(),
 				post.getLikes().size(),
 				post.getReports().size(),
+				post.getUser().getId(),
 				post.getUser().getFirstName(),
                 post.getUser().getLastName(),
                 post.getLikes().stream()

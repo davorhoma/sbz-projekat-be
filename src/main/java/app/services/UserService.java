@@ -117,4 +117,8 @@ public class UserService {
 		
 		return acceptedUserFriendRequests;
 	}
+
+	public List<User> getAll() {
+		return userRepository.findAll();
+	}
 }

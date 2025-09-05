@@ -13,6 +13,7 @@ public class PostDTO {
 	public List<String> hashtags;
 	public int numberOfLikes;
 	public int numberOfReports;
+	public UUID userId;
 	public String userFirstName;
     public String userLastName;
     public boolean likedByCurrentUser;
@@ -26,6 +27,7 @@ public class PostDTO {
         this.numberOfLikes = post.getLikes().size();
         this.hashtags = post.getHashtags();
         this.numberOfReports = post.getReports().size();
+        this.userId = post.getUser().getId();
         this.userFirstName = post.getUser().getFirstName();
         this.userLastName = post.getUser().getLastName();
         this.likedByCurrentUser = post.getLikes().stream()
@@ -34,7 +36,7 @@ public class PostDTO {
     }
 	
 	public PostDTO(UUID id, String text, List<String> hashtags, 
-			int numberOfLikes, int numberOfReports, String userFirstName, String userLastName, 
+			int numberOfLikes, int numberOfReports, UUID userId, String userFirstName, String userLastName, 
 			boolean likedByCurrentUser, LocalDateTime createdAt) {
 		super();
 		this.id = id;
@@ -42,6 +44,7 @@ public class PostDTO {
 		this.hashtags = hashtags;
 		this.numberOfLikes = numberOfLikes;
 		this.numberOfReports = numberOfReports;
+		this.userId = userId;
 		this.userFirstName = userFirstName;
         this.userLastName = userLastName;
         this.likedByCurrentUser = likedByCurrentUser;
@@ -68,6 +71,10 @@ public class PostDTO {
 		return hashtags;
 	}
 	
+	public UUID getId() {
+		return id;
+	}
+
 	public boolean isCreatedInLast24Hours() {
 	    return createdAt.isAfter(LocalDateTime.now().minusHours(24));
 	}

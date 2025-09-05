@@ -1,7 +1,29 @@
 package rules.userWithFriends;
 
+import app.model.Like;
+import app.model.User;
+import app.dtos.FeedPost;
+import app.services.DroolsService;
+
+global app.model.User loggedUser;
+global java.util.List allLikes;
+
 rule "Print"
 when
+	$fp : FeedPost()
 then
 	System.out.println("Hi");
+	//$fp.setVisible(true);
+end
+
+rule "Recommend posts from similar users"
+when
+    $likeOther : Like( $post : post, user.getId() != loggedUser.getId() )
+    not Like( post.getId() == $post.getId() , user.equals(loggedUser) )
+    eval(DroolsService.pearsonSimilarity(loggedUser, $likeOther.getUser(), allLikes) >= 0.5)
+    $fp : FeedPost( post.getId() == $post.getId() && post.userId != loggedUser.getId() )
+then
+    System.out.println("Recommend post " + $post.getId() + " to user " + loggedUser.getId()
+        + " because user " + $likeOther.getUser().getId() + " liked it");
+	$fp.setVisible(true);
 end

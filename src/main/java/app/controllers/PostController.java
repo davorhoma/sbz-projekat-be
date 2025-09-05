@@ -83,7 +83,7 @@ public class PostController {
 	}
 	
 	@PreAuthorize("hasRole('USER')")
-	@GetMapping("/get-feed")
+	@GetMapping("/feed")
 	public ResponseEntity<List<PostDTO>> getFeedPosts(@RequestHeader("Authorization") String authHeader) {
 		try {
 			String token = authHeader.replace("Bearer ", "");
