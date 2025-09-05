@@ -8,6 +8,7 @@ import app.services.DroolsService;
 
 global app.model.User loggedUser;
 global java.util.List allLikes;
+global java.util.List allPosts;
 
 rule "Print"
 when
@@ -47,4 +48,27 @@ then
         + " because it is similar to post " + $postA.getId());
     $fp.setVisible(true);
 end
+
+rule "Recommend post by hashtag likes in last 3 days"
+when
+    $fp : FeedPost( $post : post, $hashtags : post.hashtags )
+    not Like( user.getId() == loggedUser.getId(), post.getId() == $post.getId() )
+    eval( DroolsService.userLikedHashtagRecently(loggedUser, $hashtags, allLikes, 3, 5) )
+then
+    System.out.println("Recommend post " + $post.getId() + " to user " + loggedUser.getId()
+        + " because they liked >= 3 posts with same hashtag in last 3 days");
+    $fp.setVisible(true);
+end
+
+rule "Recommend post by hashtag posting preference"
+when
+    $fp : FeedPost( $post : post, $hashtags : post.hashtags )
+    eval( $fp.getPost().userId != loggedUser.getId() ) 
+    eval( DroolsService.userPostsContainHashtag(loggedUser, $hashtags, allPosts, 0.3, 365) )
+then
+    System.out.println("Recommend post " + $post.getId() + " to user " + loggedUser.getId()
+        + " because >= 30% of their posts in last year used same hashtag");
+    $fp.setVisible(true);
+end
+
 

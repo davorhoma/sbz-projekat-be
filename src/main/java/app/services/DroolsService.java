@@ -53,6 +53,7 @@ public class DroolsService {
         feedPosts.forEach(kieSession::insert);
         kieSession.setGlobal("loggedUser", currentUser);
         kieSession.setGlobal("allLikes", allLikes);
+        kieSession.setGlobal("allPosts", allPosts);
 
         allUsers.forEach(kieSession::insert);
         allPosts.forEach(kieSession::insert);
@@ -133,6 +134,36 @@ public class DroolsService {
         double overlap = (double) intersection.size() / (double) usersA.size();
 
         return overlap >= threshold;
+    }
+    
+    public static boolean userLikedHashtagRecently(User user, List<String> hashtags, List<Like> allLikes, int minCount, int days) {
+        LocalDateTime time = LocalDateTime.now().minusDays(days);
+        
+        long count = allLikes.stream()
+            .filter(l -> l.getUser().getId() == user.getId() && l.getCreatedAt().isAfter(time))
+            .map(l -> l.getPost())
+            .filter(p -> p.getHashtags().stream().anyMatch(hashtags::contains))
+            .count();
+
+        System.out.println("Count " + count);
+        return count >= minCount;
+    }
+    
+    public static boolean userPostsContainHashtag(User user, List<String> hashtags, List<Post> allPosts, double threshold, int days) {
+        LocalDateTime time = LocalDateTime.now().minusDays(days);
+
+        List<Post> userPosts = allPosts.stream()
+            .filter(p -> p.getUser().getId() == user.getId() && p.getCreatedAt().isAfter(time))
+            .collect(Collectors.toList());
+
+        if (userPosts.isEmpty()) return false;
+
+        long count = userPosts.stream()
+            .filter(p -> p.getHashtags().stream().anyMatch(hashtags::contains))
+            .count();
+
+        double ratio = (double) count / (double) userPosts.size();
+        return ratio >= threshold;
     }
 
 }
