@@ -1,0 +1,75 @@
+package rules.newUser;
+
+import app.dtos.FeedPost;
+import java.time.LocalDateTime;
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import app.dtos.PostDTO;
+
+// Objave prijatelja, ne starije od jedan dan
+rule "Show friend's post from last 24h"
+when
+    $fp : FeedPost(friend == true, 
+                   eval($fp.getPost().getCreatedAt().isAfter($fp.getNow().minusHours(24))))
+then
+    $fp.setVisible(true);
+end
+
+// Objave korisnika koji nisu prijatelji
+// Popularne objave na osnovu lajkova (više od 10 lajkova i kreirana u poslednjih 24h)
+rule "Show popular post by likes"
+when
+    $fp : FeedPost(
+    	friend == false,
+        post.numberOfLikes > 10,
+        post.createdAt > LocalDateTime.now().minusHours(24)
+    )
+then
+    $fp.setVisible(true);
+end
+
+// Popularne objave na osnovu heštegova
+declare Hashtag
+    name : String
+end
+
+rule "Insert unique hashtags"
+when
+	FeedPost($hashtags : post.hashtags)
+	$h : String() from $hashtags
+	not Hashtag ( name == $h )
+then
+	System.out.println($h);
+	insert ( new Hashtag($h) );
+end
+
+declare PopularHashtag
+    name : String
+end
+
+rule "Detect popular hashtags"
+when
+    $h : Hashtag( $name : name )
+    $count : Number( intValue > 5 ) from accumulate(
+        FeedPost( $p : post, $created : post.createdAt, $hashtags : post.hashtags )
+        and String( this == $name ) from $hashtags
+        and eval( $created.isAfter(LocalDateTime.now().minusHours(24)) ),
+        count($p)
+    )
+then
+    insert( new PopularHashtag($name) );
+    System.out.println("Popular hashtag: " + $name + " (" + $count + ")");
+end
+
+rule "Show popular posts with popular hashtags"
+when
+    $ph : PopularHashtag( $name : name )
+    $fp : FeedPost( $hashtags : post.hashtags )
+    String( this == $name ) from $hashtags
+then
+    $fp.setVisible(true);
+    System.out.println("Post marked visible due to popular hashtag: " + $name);
+end
+// -- Popularne objave na osnovu heštegova

@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <kmodule xmlns="http://jboss.org/kie/6.0.0/kmodule">
-    <kbase name="rules" packages="rules">
-        <ksession name="test-session"/>
+    <kbase name="NoFriendsBase" packages="rules.newUser">
+        <ksession name="NoFriendsSession"/>
+    </kbase>
+    
+    <kbase name="WithFriendsBase" packages="rules.userWithFriends">
+        <ksession name="WithFriendsSession"/>
     </kbase>
 </kmodule>

@@ -1,0 +1,7 @@
+package rules.userWithFriends;
+
+rule "Print"
+when
+then
+	System.out.println("Hi");
+end

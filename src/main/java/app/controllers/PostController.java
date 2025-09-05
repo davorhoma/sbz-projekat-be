@@ -81,4 +81,18 @@ public class PostController {
 			return ResponseEntity.badRequest().build();
 		}
 	}
+	
+	@PreAuthorize("hasRole('USER')")
+	@GetMapping("/get-feed")
+	public ResponseEntity<List<PostDTO>> getFeedPosts(@RequestHeader("Authorization") String authHeader) {
+		try {
+			String token = authHeader.replace("Bearer ", "");
+			List<PostDTO> feedPosts = postService.getFeedPosts(token);
+			
+			return ResponseEntity.ok(feedPosts);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.badRequest().build();
+		}
+	}
 }

@@ -86,6 +86,18 @@
 		    <version>0.11.5</version>
 		    <scope>runtime</scope>
 		</dependency>
+		
+		<dependency>
+		    <groupId>org.drools</groupId>
+		    <artifactId>drools-core</artifactId>
+		    <version>${drools.version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.drools</groupId>
+		    <artifactId>drools-compiler</artifactId>
+		    <version>${drools.version}</version>
+		</dependency>
+
     </dependencies>
 
     <build>

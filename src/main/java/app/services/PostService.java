@@ -8,8 +8,11 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import app.dtos.FeedPost;
+import app.dtos.FriendRequestDTO;
 import app.dtos.PostDTO;
 import app.mappers.PostMapper;
+import app.mappers.UserMapper;
 import app.model.Like;
 import app.model.Post;
 import app.model.User;
@@ -27,6 +30,9 @@ public class PostService {
 	
 	@Autowired
 	private UserService userService;
+	
+	@Autowired
+	private DroolsService droolsService;
 	
 	public PostDTO create(String text, List<String> hashtags, String token) throws Exception {
 		try {
@@ -89,6 +95,41 @@ public class PostService {
 		Post saved = save(post);
 		
 		return PostMapper.toDto(saved, userId);
+	}
+
+	public List<PostDTO> getFeedPosts(String token) throws Exception {
+		UUID userId = jwtUtil.extractUserId(token);
+		List<Post> allPosts = postRepository.findAll();
+		User user = userService.findById(userId);
+		
+		List<FriendRequestDTO> friends = userService.findFriends(token);
+		
+		List<FeedPost> feedPosts = allPosts.stream()
+		        .map(post -> {
+		            FeedPost fp = new FeedPost();
+		            fp.setPost(PostMapper.toDto(post, userId));
+		            fp.setCurrentUser(UserMapper.toDto(user));
+		            fp.setFriend(
+		            	    friends.stream()
+		            	           .anyMatch(fr -> fr.otherUser.getId().equals(post.getUser().getId())));
+//		            fp.setPopular(post.getLikes().size() > 10 && post.getCreatedAt().isAfter(LocalDateTime.now().minusHours(24)));
+//		            fp.setUserLikedSimilarHashtag(userLikedSimilarHashtag(user, post));
+//		            fp.setUserCreatedHashtag(userCreatedHashtag(user, post));
+//		            fp.setHasPopularHashtag(checkPopularHashtag(post));
+		            return fp;
+		        })
+		        .collect(Collectors.toList());
+		
+		if (friends.isEmpty()) {
+			droolsService.applyRulesForNewUser(feedPosts);			
+		} else {
+			droolsService.applyRulesForUserWithFriends(feedPosts);
+		}
+		
+		return feedPosts.stream()
+                .filter(FeedPost::isVisible)
+                .map(FeedPost::getPost)
+                .collect(Collectors.toList());
 	}
 
 }

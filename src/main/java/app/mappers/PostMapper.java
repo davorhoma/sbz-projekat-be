@@ -18,7 +18,8 @@ public class PostMapper {
 				post.getUser().getFirstName(),
                 post.getUser().getLastName(),
                 post.getLikes().stream()
-                .anyMatch(like -> like.getUser().getId().equals(userId)));
+                .anyMatch(like -> like.getUser().getId().equals(userId)),
+                post.getCreatedAt());
 				
 		return dto;
 	}
