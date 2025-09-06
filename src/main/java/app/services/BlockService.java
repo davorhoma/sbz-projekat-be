@@ -1,5 +1,7 @@
 package app.services;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,5 +43,25 @@ public class BlockService {
 	    blockRepository.save(newBlock);
 
 	    return new BlockResponse(true, "User blocked successfully");
+	}
+
+	public List<UUID> getBlockedUsers(String token) throws Exception {
+		UUID userId = jwtUtil.extractUserId(token);
+		
+		return blockRepository.findBlockedUserIdsByBlockerId(userId);
+	}
+
+	public BlockResponse unblockUser(String token, String blockedUserIdStr) throws Exception {
+		UUID userId = jwtUtil.extractUserId(token);
+	    UUID blockedUserId = UUID.fromString(blockedUserIdStr);
+	    
+	    Optional<Block> block = blockRepository.findByBlocker_IdAndBlocked_Id(userId, blockedUserId);
+	    if (!block.isPresent()) {
+	        return new BlockResponse(false, "User is not blocked");
+	    }
+	    
+	    blockRepository.delete(block.get());
+	    
+	    return new BlockResponse(true, "User unblocked successfully");
 	}
 }

@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import app.dtos.PlaceDTO;
 import app.dtos.PlaceRegisterDTO;
-import app.model.Place;
 import app.services.PlaceService;
 
 @RestController
@@ -26,7 +26,7 @@ public class PlaceController {
 	@PostMapping("/")
 	public ResponseEntity<?> registerNewPlace(@RequestBody PlaceRegisterDTO request) {
 		try {
-			Place place = placeService.create(
+			PlaceDTO place = placeService.create(
 					request.name, 
 					request.country, 
 					request.city, 
@@ -40,8 +40,8 @@ public class PlaceController {
 	}
 	
 	@GetMapping
-	public ResponseEntity<List<Place>> getAllPlaces() {
-		List<Place> allPlaces = placeService.getAll();
+	public ResponseEntity<List<PlaceDTO>> getAllPlaces() {
+		List<PlaceDTO> allPlaces = placeService.getAll();
 		
 		if (allPlaces.isEmpty()) {
 			return ResponseEntity.notFound().build();				

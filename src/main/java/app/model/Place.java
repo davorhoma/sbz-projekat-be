@@ -98,6 +98,10 @@ public class Place implements Serializable {
     public void setRatings(List<Rating> ratings) {
         this.ratings = ratings;
     }
+    
+    public void addRating(Rating rating) {
+    	this.ratings.add(rating);
+    }
 
     @Override
     public boolean equals(Object o) {

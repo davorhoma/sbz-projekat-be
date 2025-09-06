@@ -31,7 +31,7 @@ public class PostController {
 	private JwtUtil jwtUtil;
 	
 	@PreAuthorize("hasRole('USER')")
-	@PostMapping("/")
+	@PostMapping
 	public ResponseEntity<?> createPost(@RequestBody PostCreateDTO request,
 			@RequestHeader("Authorization") String authHeader) {
 		try {
@@ -45,7 +45,7 @@ public class PostController {
 	}
 	
 	@PreAuthorize("hasRole('USER')")
-	@GetMapping("/")
+	@GetMapping
 	public ResponseEntity<List<PostDTO>> getAllPosts(@RequestHeader("Authorization") String authHeader) {
 		try {
 			UUID userId = jwtUtil.extractUserId(authHeader.replace("Bearer ", ""));

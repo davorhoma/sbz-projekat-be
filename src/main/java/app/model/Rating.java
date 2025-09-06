@@ -29,14 +29,20 @@ public class Rating implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "place_id")
     private Place place;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     public Rating() {}
 
-    public Rating(int score, String description, String hashtag, Place place) {
+    public Rating(int score, String description, String hashtag, Place place, User user) throws Exception {
+    	if (score < 1 || score > 5) throw new Exception("Score not valid");
         this.score = score;
         this.description = description;
         this.hashtag = hashtag;
         this.place = place;
+        this.user = user;
     }
 
     public UUID getId() {
@@ -80,6 +86,14 @@ public class Rating implements Serializable {
 
     public void setPlace(Place place) {
         this.place = place;
+    }
+    
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     @Override
