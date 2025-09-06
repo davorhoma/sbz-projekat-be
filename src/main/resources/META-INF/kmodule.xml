@@ -4,7 +4,7 @@
         <ksession name="NoFriendsSession"/>
     </kbase>
     
-    <kbase name="WithFriendsBase" packages="rules.userWithFriends">
+    <kbase name="WithFriendsBase" packages="rules.activeUser">
         <ksession name="WithFriendsSession"/>
     </kbase>
 </kmodule>

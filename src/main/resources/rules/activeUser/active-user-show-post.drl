@@ -27,7 +27,8 @@ when
 then
     System.out.println("Recommend post " + $post.getId() + " to user " + loggedUser.getId()
         + " because user " + $likeOther.getUser().getId() + " liked it");
-	$fp.setVisible(true);
+	//$fp.setVisible(true);
+	$fp.setScore($fp.getScore() + 1);
 end
 
 rule "Recommend similar posts by likes overlap"
@@ -46,7 +47,8 @@ then
     System.out.println("Recommend post by likes overlap: " + $postB.getId() 
         + " to user " + loggedUser.getId() 
         + " because it is similar to post " + $postA.getId());
-    $fp.setVisible(true);
+    //$fp.setVisible(true);
+    $fp.setScore($fp.getScore() + 1);
 end
 
 rule "Recommend post by hashtag likes in last 3 days"
@@ -57,7 +59,8 @@ when
 then
     System.out.println("Recommend post " + $post.getId() + " to user " + loggedUser.getId()
         + " because they liked >= 3 posts with same hashtag in last 3 days");
-    $fp.setVisible(true);
+    //$fp.setVisible(true);
+    $fp.setScore($fp.getScore() + 1);
 end
 
 rule "Recommend post by hashtag posting preference"
@@ -68,7 +71,8 @@ when
 then
     System.out.println("Recommend post " + $post.getId() + " to user " + loggedUser.getId()
         + " because >= 30% of their posts in last year used same hashtag");
-    $fp.setVisible(true);
+    //$fp.setVisible(true);
+    $fp.setScore($fp.getScore() + 1);
 end
 
 

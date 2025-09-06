@@ -115,10 +115,6 @@ public class PostService {
 		            fp.setFriend(
 		            	    friends.stream()
 		            	           .anyMatch(fr -> fr.otherUser.getId().equals(post.getUser().getId())));
-//		            fp.setPopular(post.getLikes().size() > 10 && post.getCreatedAt().isAfter(LocalDateTime.now().minusHours(24)));
-//		            fp.setUserLikedSimilarHashtag(userLikedSimilarHashtag(user, post));
-//		            fp.setUserCreatedHashtag(userCreatedHashtag(user, post));
-//		            fp.setHasPopularHashtag(checkPopularHashtag(post));
 		            return fp;
 		        })
 		        .collect(Collectors.toList());
@@ -130,7 +126,7 @@ public class PostService {
 			System.out.println("Has friends");
 			List<User> allUsers = userService.getAll();
 			List<Like> allLikes = likeRepository.findAll();
-			droolsService.applyRulesForUserWithFriends(feedPosts, user, allUsers, allPosts, allLikes);
+			feedPosts = droolsService.applyRulesForUserWithFriends(feedPosts, user, allUsers, allPosts, allLikes);
 		}
 		
 		return feedPosts.stream()

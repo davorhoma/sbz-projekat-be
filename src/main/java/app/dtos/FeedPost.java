@@ -12,6 +12,7 @@ public class FeedPost {
     private boolean userCreatedHashtag;
     private LocalDateTime now = LocalDateTime.now();
     
+    private int score = 0;
     private boolean visible = false;
     
     public FeedPost() {}
@@ -96,8 +97,16 @@ public class FeedPost {
 	public boolean isVisible() {
         return visible;
     }
+	
+    public int getScore() {
+		return score;
+	}
 
-    public void setVisible(boolean visible) {
+	public void setScore(int score) {
+		this.score = score;
+	}
+
+	public void setVisible(boolean visible) {
         this.visible = visible;
     }
 

@@ -2,6 +2,7 @@ package app.services;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -42,7 +43,7 @@ public class DroolsService {
         kieSession.dispose();
     }
     
-    public void applyRulesForUserWithFriends(List<FeedPost> feedPosts,
+    public List<FeedPost> applyRulesForUserWithFriends(List<FeedPost> feedPosts,
     		User currentUser,
     		List<User> allUsers, 
     		List<Post> allPosts,
@@ -61,6 +62,27 @@ public class DroolsService {
         
         kieSession.fireAllRules();
         kieSession.dispose();
+        
+        feedPosts.forEach(fp -> fp.setVisible(false));
+        feedPosts.sort(
+        	    Comparator.comparingInt(FeedPost::getScore).reversed()
+        	              .thenComparing(fp -> fp.getPost().createdAt,
+        	                             Comparator.nullsLast(Comparator.reverseOrder()))
+        	);
+        
+        feedPosts.stream()
+	        .limit(20)
+	        .forEach(fp -> fp.setVisible(true));        
+        
+        long visibleCount = feedPosts.stream()
+        	    .filter(FeedPost::isVisible)
+        	    .count();
+
+    	System.out.println("Broj vidljivih postova: " + visibleCount);
+    	System.out.print("Scores: ");
+    	feedPosts.forEach(fp -> System.out.print(fp.getScore() + ", "));
+    	
+    	return feedPosts;
     }
     
     public static double pearsonSimilarity(User a, User b, List<Like> allLikes) {
