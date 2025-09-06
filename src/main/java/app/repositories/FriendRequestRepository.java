@@ -23,5 +23,9 @@ public interface FriendRequestRepository extends JpaRepository<FriendRequest, UU
 	@Query("SELECT fr FROM FriendRequest fr WHERE (fr.sender.id = :userId OR fr.recipient.id = :userId) AND fr.status = 'ACCEPTED'")
 	List<FriendRequest> findAllFriends(UUID userId);
 
-
+	@Query("SELECT COUNT(fr) > 0 FROM FriendRequest fr " +
+		       "WHERE ((fr.sender.id = :userId1 AND fr.recipient.id = :userId2) " +
+		       "OR (fr.sender.id = :userId2 AND fr.recipient.id = :userId1)) " +
+		       "AND fr.status = 'ACCEPTED'")
+	public boolean areUsersFriends(@Param("userId1") UUID userId1, @Param("userId2") UUID userId2);
 }

@@ -121,4 +121,8 @@ public class UserService {
 	public List<User> getAll() {
 		return userRepository.findAll();
 	}
+
+	public boolean areUsersFriends(UUID userId, UUID blockedUserId) {
+		return friendRequestRepository.areUsersFriends(userId, blockedUserId);
+	}
 }
