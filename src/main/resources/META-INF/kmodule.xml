@@ -7,4 +7,8 @@
     <kbase name="WithFriendsBase" packages="rules.activeUser">
         <ksession name="WithFriendsSession"/>
     </kbase>
+    
+    <kbase name="SuspiciousUsersBase" packages="rules.suspiciousUsers">
+        <ksession name="SuspiciousUsersSession"/>
+    </kbase>
 </kmodule>

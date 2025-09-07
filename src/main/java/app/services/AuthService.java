@@ -27,6 +27,9 @@ public class AuthService {
 	@Autowired
 	private JwtUtil jwtUtil;
 	
+	@Autowired
+	private UserRestrictionService userRestrictionService;
+	
 	public User register(String firstName, String lastName, String email, String password, UUID placeId) throws Exception {
         if (userRepository.findByEmail(email).isPresent()) {
         	throw new Exception("User already exists");
@@ -51,6 +54,10 @@ public class AuthService {
         User user = userOpt.get();
         if (!user.getPassword().equals(password)) {
             throw new Exception("Invalid email or password");
+        }
+        
+        if (userRestrictionService.isUserLoginRestricted(user)) {
+        	throw new Exception("User is restricted from login");
         }
         
         String token = jwtUtil.generateToken(user.getId(), email, user.getRole().name());

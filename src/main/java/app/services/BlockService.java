@@ -25,6 +25,9 @@ public class BlockService {
 	@Autowired
 	private UserService userService;
 	
+	@Autowired
+	private DroolsSuspiciousUserService droolsSuspiciousUserService;
+	
 	public BlockResponse blockUser(String token, String blockedUserIdStr) throws Exception {
 	    UUID userId = jwtUtil.extractUserId(token);
 	    UUID blockedUserId = UUID.fromString(blockedUserIdStr);
@@ -42,6 +45,8 @@ public class BlockService {
 	    Block newBlock = new Block(blocker, blocked);
 	    blockRepository.save(newBlock);
 
+	    droolsSuspiciousUserService.applyRules();
+	    
 	    return new BlockResponse(true, "User blocked successfully");
 	}
 
@@ -63,5 +68,9 @@ public class BlockService {
 	    blockRepository.delete(block.get());
 	    
 	    return new BlockResponse(true, "User unblocked successfully");
+	}
+	
+	public List<Block> findAll() {
+		return blockRepository.findAll();
 	}
 }

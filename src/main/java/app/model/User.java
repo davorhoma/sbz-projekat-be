@@ -118,7 +118,7 @@ public class User implements Serializable {
 
     @Override
     public String toString() {
-        return "UserProfile{" +
+        return "User{" +
                 "id=" + id +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +

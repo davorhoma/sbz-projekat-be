@@ -1,5 +1,6 @@
 package app.services;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import app.mappers.PostMapper;
 import app.model.Post;
 import app.model.Report;
 import app.model.User;
+import app.repositories.ReportRepository;
 import app.utils.JwtUtil;
 
 @Service
@@ -23,6 +25,12 @@ public class ReportService {
 	
 	@Autowired
     private JwtUtil jwtUtil;
+	
+	@Autowired
+	private ReportRepository reportRepository;
+	
+	@Autowired
+	private DroolsSuspiciousUserService droolsSuspiciousUserService;
 	
 	public PostDTO reportPost(String postIdStr, String token) throws Exception {		
 		UUID postId = UUID.fromString(postIdStr);
@@ -49,6 +57,12 @@ public class ReportService {
         post.addReport(newReport);
         Post saved = postService.save(post);
         
+        droolsSuspiciousUserService.applyRules();
+        
         return PostMapper.toDto(saved, userId);			
+	}
+
+	public List<Report> findAllWithPostAndUser() {
+		return reportRepository.findAllWithPostAndUser();
 	}
 }

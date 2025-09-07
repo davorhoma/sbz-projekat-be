@@ -1,0 +1,121 @@
+package rules.suspiciousUsers;
+
+import app.model.User;
+import app.model.Report;
+import app.model.Block;
+import app.model.RestrictionType;
+import java.time.LocalDateTime;
+
+global app.services.UserRestrictionService restrictionService;
+
+rule "Post reported > 5 times in 24h"
+salience 90
+when
+    $u : User($uid : id)
+    Number( intValue > 5 ) from accumulate(
+        Report($postUserId : post.getUser().getId(), $time : creationTime,
+               eval($time.isAfter(LocalDateTime.now().minusHours(24))) &&
+               $postUserId == $uid),
+        count(1)
+    )
+then
+	restrictionService.addRestriction($u, RestrictionType.POST, 1);
+    //System.out.println("User " + $u.getEmail() + " restricted from posting for 1 day.");
+end
+
+rule "Post reported > 8 times in 48h"
+salience 100
+when
+    $u : User($uid : id)
+    Number( intValue > 8 ) from accumulate(
+        Report($postUserId : post.user.id, $time : creationTime, 
+               eval($time.isAfter(LocalDateTime.now().minusHours(48))) &&
+               $postUserId == $uid),
+        count(1)
+    )
+then
+    restrictionService.addRestriction($u, RestrictionType.POST, 2);
+    //System.out.println("User " + $u.getEmail() + " restricted from posting for 2 days.");
+end
+
+rule "User blocked > 4 times in 24h"
+salience 80
+when
+    $u : User($uid : id)
+    Number( intValue > 4 ) from accumulate(
+        Block($blockedUserId : blocked.id, $time : blockedAt,
+              eval($time.isAfter(LocalDateTime.now().minusHours(24))) &&
+              $blockedUserId == $uid),
+        count(1)
+    )
+then
+    restrictionService.addRestriction($u, RestrictionType.POST, 1);
+    //System.out.println("User " + $u.getEmail() + " blocked more than 4 times in 24h → restricted from posting 1 day.");
+end
+
+rule "Blocked > 2 in 2 days AND reported > 4 in 1 day -> login restriction"
+salience 60
+when
+    $u : User($uid : id)
+    
+    // Broj blokiranja u poslednja 2 dana
+    Number( intValue > 2 ) from accumulate(
+        Block($blockedUserId : blocked.id, $blockTime : blockedAt,
+              eval($blockTime.isAfter(LocalDateTime.now().minusDays(2))) &&
+              $blockedUserId == $uid),
+        count(1)
+    )
+    
+    // Broj prijava objava u poslednja 1 dan
+    Number( intValue > 4 ) from accumulate(
+        Report($postUserId : post.user.id, $reportTime : creationTime,
+               eval($reportTime.isAfter(LocalDateTime.now().minusDays(1))) &&
+               $postUserId == $uid),
+        count(1)
+    )
+then
+    restrictionService.addRestriction($u, RestrictionType.LOGIN, 2);
+    //System.out.println("User " + $u.getEmail() + " blocked > 2 in 2 days AND reported > 4 in 1 day → login restricted for 2 days.");
+end
+
+rule "Blocked > 10 in 2 days AND reported > 10 in 2 days -> permanent login restriction"
+salience 70
+when
+    $u : User($uid : id)
+    
+    // Broj blokiranja u poslednja 2 dana
+    Number( intValue > 10 ) from accumulate(
+        Block($blockedUserId : blocked.id, $blockTime : blockedAt,
+              eval($blockTime.isAfter(LocalDateTime.now().minusDays(2))) &&
+              $blockedUserId == $uid),
+        count(1)
+    )
+    
+    // Broj prijava objava u poslednja 1 dan
+    Number( intValue > 10 ) from accumulate(
+        Report($postUserId : post.user.id, $reportTime : creationTime,
+               eval($reportTime.isAfter(LocalDateTime.now().minusDays(2))) &&
+               $postUserId == $uid),
+        count(1)
+    )
+then
+    restrictionService.addRestriction($u, RestrictionType.LOGIN, -1);
+    //System.out.println("User " + $u.getEmail() + " blocked > 10 in 2 days AND reported > 10 in 2 day → login restricted permanently.");
+end
+
+rule "Blocked > 15 in 7 days -> 2 days restriction from liking posts"
+salience 50
+when
+    $u : User($uid : id)
+    
+    // Broj blokiranja u poslednja 2 dana
+    Number( intValue > 15 ) from accumulate(
+        Block($blockedUserId : blocked.id, $blockTime : blockedAt,
+              eval($blockTime.isAfter(LocalDateTime.now().minusDays(7))) &&
+              $blockedUserId == $uid),
+        count(1)
+    )
+then
+    restrictionService.addRestriction($u, RestrictionType.LIKE, 2);
+    //System.out.println("User " + $u.getEmail() + " blocked > 15 in 7 days → likes restricted for 2 days.");
+end

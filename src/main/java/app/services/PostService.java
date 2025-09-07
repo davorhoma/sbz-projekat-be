@@ -37,9 +37,16 @@ public class PostService {
 	@Autowired
 	private DroolsService droolsService;
 	
+	@Autowired
+	private UserRestrictionService userRestrictionService;
+	
 	public PostDTO create(String text, List<String> hashtags, String token) throws Exception {
 		try {
 			User user = userService.findById(jwtUtil.extractUserId(token));
+			
+			if (userRestrictionService.isUserPostRestricted(user)) {
+				throw new Exception("User is restricted from posting");
+			}
 			
 			Post newPost = new Post(text, hashtags);
 			newPost.setUser(user);
@@ -79,6 +86,10 @@ public class PostService {
 	public PostDTO updateLikeStatus(String postIdStr, String token) throws Exception {
 		UUID userId = jwtUtil.extractUserId(token);
 		User user = userService.findById(userId);
+		
+		if (userRestrictionService.isUserLikeRestricted(user)) {
+			throw new Exception("User is restricted from liking");
+		}
 		
 		UUID postId = UUID.fromString(postIdStr);
 		Post post = get(postId);
