@@ -131,17 +131,19 @@ public class PostService {
 		        .collect(Collectors.toList());
 		
 		List<Like> allLikes = likeRepository.findAll();
-		if (friends.isEmpty()) {
+		List<Post> userPosts = postRepository.findAllByUserId(userId);
+		if (friends.isEmpty() && userPosts.isEmpty()) {
 			System.out.println("No friends");
+
+			List<User> allUsers = userService.getAll();
+			
+			feedPosts = droolsService.applyRulesForNewUser(feedPosts, user, allUsers, allPosts, allLikes);			
+		} else {
+			System.out.println("Has friends");
 			List<Like> userLikes = allLikes.stream()
 				    .filter(like -> like.getUser().getId().equals(userId))
 				    .collect(Collectors.toList());
-			
-			droolsService.applyRulesForNewUser(feedPosts, userLikes);			
-		} else {
-			System.out.println("Has friends");
-			List<User> allUsers = userService.getAll();
-			feedPosts = droolsService.applyRulesForUserWithFriends(feedPosts, user, allUsers, allPosts, allLikes);
+			droolsService.applyRulesForUserWithFriends(feedPosts, userLikes);
 		}
 		
 		return feedPosts.stream()

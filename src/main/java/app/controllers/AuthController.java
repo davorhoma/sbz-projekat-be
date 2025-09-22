@@ -22,15 +22,12 @@ public class AuthController {
         try {
         	System.out.println(request.placeId);
         	
-            User user = authService.register(
-                    request.firstName,
-                    request.lastName,
-                    request.email,
-                    request.password,
-                    request.placeId
-            );
+            if (authService.register(request.firstName, request.lastName, request.email, request.password, request.placeId)) {
+            	return ResponseEntity.ok().build();            	
+            } else {
+            	return ResponseEntity.badRequest().body("Register failed");
+            }
 
-            return ResponseEntity.ok(user);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

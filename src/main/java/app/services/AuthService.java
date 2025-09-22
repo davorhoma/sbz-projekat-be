@@ -30,7 +30,7 @@ public class AuthService {
 	@Autowired
 	private UserRestrictionService userRestrictionService;
 	
-	public User register(String firstName, String lastName, String email, String password, UUID placeId) throws Exception {
+	public boolean register(String firstName, String lastName, String email, String password, UUID placeId) throws Exception {
         if (userRepository.findByEmail(email).isPresent()) {
         	throw new Exception("User already exists");
         }
@@ -38,7 +38,12 @@ public class AuthService {
         try {
         	User user = new User(firstName, lastName, email, password, placeService.findById(placeId), UserRole.USER);
         	
-        	return userRepository.save(user);
+        	User savedUser = userRepository.save(user);
+        	if (savedUser != null) {
+        		return true;
+        	} else {
+        		return false;
+        	}
         	
         } catch (Exception e) {
         	throw new Exception("Place does not exists");

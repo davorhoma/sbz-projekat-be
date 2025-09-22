@@ -1,78 +1,120 @@
 package rules.userWithFriends;
 
-import app.model.Like;
-import app.model.User;
-import app.model.Post;
 import app.dtos.FeedPost;
-import app.services.DroolsService;
+import java.time.LocalDateTime;
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import app.dtos.PostDTO;
+import app.model.Like;
+import app.model.Post;
 
-global app.model.User loggedUser;
-global java.util.List allLikes;
-global java.util.List allPosts;
-
-rule "Print"
+// Objave prijatelja, ne starije od jedan dan
+rule "Show friend's post from last 24h"
 when
-	$fp : FeedPost()
+    $fp : FeedPost(friend == true, 
+                   eval($fp.getPost().getCreatedAt().isAfter($fp.getNow().minusHours(24))))
 then
-	System.out.println("Hi");
-	//$fp.setVisible(true);
+    $fp.setVisible(true);
 end
 
-rule "Recommend posts from similar users"
+// --- Objave korisnika koji nisu prijatelji ---
+
+// Objave sa istim heštegom kao i objave koje je korisnik lajkovao
+rule "Show posts with hashtags liked by user"
 when
-    $likeOther : Like( $post : post, user.getId() != loggedUser.getId() )
-    not Like( post.getId() == $post.getId() , user.equals(loggedUser) )
-    eval(DroolsService.pearsonSimilarity(loggedUser, $likeOther.getUser(), allLikes) >= 0.5)
-    $fp : FeedPost( post.getId() == $post.getId() && post.userId != loggedUser.getId() )
+    $fp : FeedPost(
+        friend == false,
+        $hashtags : post.hashtags,
+        $user     : currentUser
+    )
+
+    $like : Like(
+        user.id == $user.id,
+        $likedPost : post
+    )
+
+    String( this memberOf $hashtags ) from $likedPost.hashtags
 then
-    System.out.println("Recommend post " + $post.getId() + " to user " + loggedUser.getId()
-        + " because user " + $likeOther.getUser().getId() + " liked it");
-	//$fp.setVisible(true);
-	$fp.setScore($fp.getScore() + 1);
+    $fp.setVisible(true);
+    $fp.setUserLikedSameHashtag(true);
+    System.out.println("Visible due to user liked same hashtag: " + $hashtags);
 end
 
-rule "Recommend similar posts by likes overlap"
+// Objave sa istim heštegom kao i korisnikove objave
+rule "Show non-friend posts with hashtags created by user"
 when
-    $postA : Post()
-    $postB : Post( this != $postA )
-
-    Like( user.getId() == loggedUser.getId(), post.getId() == $postA.getId() )
-
-    not Like( user.getId() == loggedUser.getId(), post.getId() == $postB.getId() )
-
-    eval( DroolsService.postsAreSimilar($postA, $postB, allLikes, 0.7) )
-    
-    $fp : FeedPost( post.getId() == $postB.getId() && post.userId != loggedUser.getId() )
+    $fp : FeedPost( 
+        $hashtags : post.hashtags, 
+        $user : currentUser, 
+        friend == false // korisnik NIJE prijatelj sa autorom ovog feed posta
+    )
+    $own : FeedPost( 
+        post.userId == $user.id, 
+        $ownTags : post.hashtags 
+    )
+    String( this memberOf $hashtags ) from $ownTags
 then
-    System.out.println("Recommend post by likes overlap: " + $postB.getId() 
-        + " to user " + loggedUser.getId() 
-        + " because it is similar to post " + $postA.getId());
-    //$fp.setVisible(true);
-    $fp.setScore($fp.getScore() + 1);
+    $fp.setVisible(true);
+    $fp.setUserCreatedHashtag(true);
+    System.out.println("Visible due to user created same hashtag (non-friend): " + $hashtags);
 end
 
-rule "Recommend post by hashtag likes in last 3 days"
+
+// Popularne objave na osnovu lajkova (više od 10 lajkova i kreirana u poslednjih 24h)
+rule "Show popular post by likes"
 when
-    $fp : FeedPost( $post : post, $hashtags : post.hashtags )
-    not Like( user.getId() == loggedUser.getId(), post.getId() == $post.getId() )
-    eval( DroolsService.userLikedHashtagRecently(loggedUser, $hashtags, allLikes, 3, 3) )
+    $fp : FeedPost(
+    	friend == false,
+        post.numberOfLikes > 10,
+        post.createdAt > LocalDateTime.now().minusHours(24)
+    )
 then
-    System.out.println("Recommend post " + $post.getId() + " to user " + loggedUser.getId()
-        + " because they liked >= 3 posts with same hashtag in last 3 days");
-    //$fp.setVisible(true);
-    $fp.setScore($fp.getScore() + 1);
+    $fp.setVisible(true);
 end
 
-rule "Recommend post by hashtag posting preference"
-when
-    $fp : FeedPost( $post : post, $hashtags : post.hashtags )
-    eval( $fp.getPost().userId != loggedUser.getId() ) 
-    eval( DroolsService.userPostsContainHashtag(loggedUser, $hashtags, allPosts, 0.3, 365) )
-then
-    System.out.println("Recommend post " + $post.getId() + " to user " + loggedUser.getId()
-        + " because >= 30% of their posts in last year used same hashtag");
-    //$fp.setVisible(true);
-    $fp.setScore($fp.getScore() + 1);
+// Popularne objave na osnovu heštegova
+declare Hashtag
+    name : String
 end
 
+rule "Insert unique hashtags"
+when
+	FeedPost($hashtags : post.hashtags)
+	$h : String() from $hashtags
+	not Hashtag ( name == $h )
+then
+	System.out.println($h);
+	insert ( new Hashtag($h) );
+end
+
+declare PopularHashtag
+    name : String
+end
+
+rule "Detect popular hashtags"
+when
+    $h : Hashtag( $name : name )
+    $count : Number( intValue > 5 ) from accumulate(
+        FeedPost( $p : post, $created : post.createdAt, $hashtags : post.hashtags )
+        and String( this == $name ) from $hashtags
+        and eval( $created.isAfter(LocalDateTime.now().minusHours(24)) ),
+        count($p)
+    )
+then
+    insert( new PopularHashtag($name) );
+    System.out.println("Popular hashtag: " + $name + " (" + $count + ")");
+end
+
+rule "Show popular posts with popular hashtags"
+when
+    $ph : PopularHashtag( $name : name )
+    $fp : FeedPost( $hashtags : post.hashtags )
+    String( this == $name ) from $hashtags
+then
+    $fp.setVisible(true);
+    System.out.println("Post marked visible due to popular hashtag: " + $name);
+end
+// -- Popularne objave na osnovu heštegova
 

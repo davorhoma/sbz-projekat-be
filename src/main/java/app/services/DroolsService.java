@@ -30,8 +30,8 @@ public class DroolsService {
         kieContainer = ks.getKieClasspathContainer();
     }
 
-    public void applyRulesForNewUser(List<FeedPost> feedPosts, List<Like> userLikes) {
-        KieSession kieSession = kieContainer.newKieSession("NoFriendsSession");
+    public void applyRulesForUserWithFriends(List<FeedPost> feedPosts, List<Like> userLikes) {
+        KieSession kieSession = kieContainer.newKieSession("WithFriendsSession");
         for (FeedPost fp : feedPosts) {
             kieSession.insert(fp);
         }
@@ -45,13 +45,13 @@ public class DroolsService {
         kieSession.dispose();
     }
     
-    public List<FeedPost> applyRulesForUserWithFriends(List<FeedPost> feedPosts,
+    public List<FeedPost> applyRulesForNewUser(List<FeedPost> feedPosts,
     		User currentUser,
     		List<User> allUsers, 
     		List<Post> allPosts,
     		List<Like> allLikes) {
-    	
-        KieSession kieSession = kieContainer.newKieSession("WithFriendsSession");
+
+        KieSession kieSession = kieContainer.newKieSession("NoFriendsSession");
         
         feedPosts.forEach(kieSession::insert);
         kieSession.setGlobal("loggedUser", currentUser);
@@ -61,6 +61,8 @@ public class DroolsService {
         allUsers.forEach(kieSession::insert);
         allPosts.forEach(kieSession::insert);
         allLikes.forEach(kieSession::insert);
+        
+        feedPosts.forEach(fp -> fp.setScore(0));
         
         kieSession.fireAllRules();
         kieSession.dispose();
