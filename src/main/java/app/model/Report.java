@@ -46,6 +46,10 @@ public class Report implements Serializable {
     public UUID getUserId() {
         return userId;
     }
+    
+    public void setCreationTime(LocalDateTime creationTime) {
+        this.creationTime = creationTime;
+    }
 
     public LocalDateTime getCreationTime() {
         return creationTime;

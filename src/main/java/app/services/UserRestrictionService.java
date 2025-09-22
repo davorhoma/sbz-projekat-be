@@ -14,25 +14,37 @@ import app.repositories.UserRestrictionRepository;
 @Service
 public class UserRestrictionService {
 
-	@Autowired
     private UserRestrictionRepository repository;
+	
+	@Autowired
+    public UserRestrictionService(UserRestrictionRepository repository) {
+        this.repository = repository;
+    }
 
     public void addRestriction(User user, RestrictionType type, int days) {
     	LocalDateTime now = LocalDateTime.now();
     	
     	List<UserRestriction> active = repository.findActiveRestrictions(user, type, now);
         if (!active.isEmpty()) {
-            System.out.println("Restriction already exists for user " + user.getEmail() + " and type " + type);
-            
-//            UserRestriction existing = active.get(0);
-//            if (existing.getType().equals(RestrictionType.LOGIN)
-//            		&& existing.getValidUntil() == null) {
-//            	return;
-//            }
-//            
-//            existing.setValidUntil(existing.getValidUntil().plusDays(days));
-//            repository.save(existing);
-            return;
+        	for (UserRestriction r : active) {
+                if (r.getValidUntil() == null) {
+                    System.out.println("Permanent restriction already exists for user " + user.getEmail() + " and type " + type);
+                    return;
+                }
+            }
+            // Ako se dodaje permanentna restrikcija, zameni postojeću privremenu
+            if (days == -1) {
+                for (UserRestriction r : active) {
+                    repository.delete(r); // izbriši privremenu restrikciju
+                }
+            } else {
+                // Eventualno produži postojeću privremenu restrikciju
+                for (UserRestriction r : active) {
+                    r.setValidUntil(r.getValidUntil().plusDays(days));
+                    repository.save(r);
+                }
+                return;
+            }
         }
         
         LocalDateTime until;
@@ -45,7 +57,11 @@ public class UserRestrictionService {
         UserRestriction restriction = new UserRestriction(user, type, until);
         repository.save(restriction);
         
-        System.out.println("User " + user.getEmail() + " " + type.toString() + " restricted " + until.toString());
+        if (until == null) {
+        	System.out.println("User " + user.getEmail() + " " + type.toString() + " restricted permanently");        	
+        } else {
+        	System.out.println("User " + user.getEmail() + " " + type.toString() + " restricted until " + until.toString());        	
+        }
     }
     
     public boolean isUserLoginRestricted(User user) {
