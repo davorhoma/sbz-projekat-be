@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import app.dtos.PostDTO;
+import app.model.Like;
+import app.model.Post;
 
 // Objave prijatelja, ne starije od jedan dan
 rule "Show friend's post from last 24h"
@@ -17,7 +19,49 @@ then
     $fp.setVisible(true);
 end
 
-// Objave korisnika koji nisu prijatelji
+// --- Objave korisnika koji nisu prijatelji ---
+
+// Objave sa istim heštegom kao i objave koje je korisnik lajkovao
+rule "Show posts with hashtags liked by user"
+when
+    $fp : FeedPost(
+        friend == false,
+        $hashtags : post.hashtags,
+        $user     : currentUser
+    )
+
+    $like : Like(
+        user.id == $user.id,
+        $likedPost : post
+    )
+
+    String( this memberOf $hashtags ) from $likedPost.hashtags
+then
+    $fp.setVisible(true);
+    $fp.setUserLikedSameHashtag(true);
+    System.out.println("Visible due to user liked same hashtag: " + $hashtags);
+end
+
+// Objave sa istim heštegom kao i korisnikove objave
+rule "Show non-friend posts with hashtags created by user"
+when
+    $fp : FeedPost( 
+        $hashtags : post.hashtags, 
+        $user : currentUser, 
+        friend == false // korisnik NIJE prijatelj sa autorom ovog feed posta
+    )
+    $own : FeedPost( 
+        post.userId == $user.id, 
+        $ownTags : post.hashtags 
+    )
+    String( this memberOf $hashtags ) from $ownTags
+then
+    $fp.setVisible(true);
+    $fp.setUserCreatedHashtag(true);
+    System.out.println("Visible due to user created same hashtag (non-friend): " + $hashtags);
+end
+
+
 // Popularne objave na osnovu lajkova (više od 10 lajkova i kreirana u poslednjih 24h)
 rule "Show popular post by likes"
 when

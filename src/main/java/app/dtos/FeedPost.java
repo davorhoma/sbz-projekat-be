@@ -8,7 +8,7 @@ public class FeedPost {
     private boolean isFriend;
     private boolean isPopular;
     private boolean hasPopularHashtag;
-    private boolean userLikedSimilarHashtag;
+    private boolean userLikedSameHashtag;
     private boolean userCreatedHashtag;
     private LocalDateTime now = LocalDateTime.now();
     
@@ -18,14 +18,14 @@ public class FeedPost {
     public FeedPost() {}
     
 	public FeedPost(PostDTO post, UserDTO currentUser, boolean isFriend, boolean isPopular, boolean hasPopularHashtag,
-			boolean userLikedSimilarHashtag, boolean userCreatedHashtag, LocalDateTime now) {
+			boolean userLikedSameHashtag, boolean userCreatedHashtag, LocalDateTime now) {
 		super();
 		this.post = post;
 		this.currentUser = currentUser;
 		this.isFriend = isFriend;
 		this.isPopular = isPopular;
 		this.hasPopularHashtag = hasPopularHashtag;
-		this.userLikedSimilarHashtag = userLikedSimilarHashtag;
+		this.userLikedSameHashtag = userLikedSameHashtag;
 		this.userCreatedHashtag = userCreatedHashtag;
 		this.now = now;
 	}
@@ -70,12 +70,12 @@ public class FeedPost {
 		this.hasPopularHashtag = hasPopularHashtag;
 	}
 	
-	public boolean isUserLikedSimilarHashtag() {
-		return userLikedSimilarHashtag;
+	public boolean isUserLikedSameHashtag() {
+		return userLikedSameHashtag;
 	}
 	
-	public void setUserLikedSimilarHashtag(boolean userLikedSimilarHashtag) {
-		this.userLikedSimilarHashtag = userLikedSimilarHashtag;
+	public void setUserLikedSameHashtag(boolean userLikedSameHashtag) {
+		this.userLikedSameHashtag = userLikedSameHashtag;
 	}
 	
 	public boolean isUserCreatedHashtag() {

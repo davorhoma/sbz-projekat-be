@@ -30,11 +30,13 @@ public class DroolsService {
         kieContainer = ks.getKieClasspathContainer();
     }
 
-    public void applyRulesForNewUser(List<FeedPost> feedPosts) {
+    public void applyRulesForNewUser(List<FeedPost> feedPosts, List<Like> userLikes) {
         KieSession kieSession = kieContainer.newKieSession("NoFriendsSession");
         for (FeedPost fp : feedPosts) {
             kieSession.insert(fp);
         }
+        
+        userLikes.forEach(kieSession::insert);
         
         LocalDateTime threshold = LocalDateTime.now().minusHours(24);
         kieSession.insert(threshold);
